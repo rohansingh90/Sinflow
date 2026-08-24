@@ -265,7 +265,8 @@ const DocumentPreview = ({
         className={`w-full bg-white ${blockPointerEvents ? "pointer-events-none select-none" : ""}`}
       >
         <Document
-          file={pdfFile}
+          // file={pdfFile}
+          file={fileUrl} 
           onLoadSuccess={({ numPages: n }) => onNumPagesChange?.(n)}
           onLoadError={onPdfError}
           loading={

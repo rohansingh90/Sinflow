@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
+import { pdfjs } from "react-pdf";
 import {
   ArrowLeft,
   Calendar,
@@ -29,6 +30,8 @@ import {
   sanitizeParticipants,
   stripUndefined,
 } from "../Lib/firestoreUtils";
+
+pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const FIELD_TYPES = [
   { id: "signature", label: "Signature", icon: PenLine, accent: "border-blue-200 bg-blue-50/90 text-blue-700" },

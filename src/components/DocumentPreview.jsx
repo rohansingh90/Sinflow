@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Document, Page } from "react-pdf";
 import mammoth from "mammoth";
 import { Loader2 } from "lucide-react";
+import "../Lib/pdfSetup";
 import {
   getFileKind,
   getGoogleEmbedUrl,
@@ -179,6 +180,52 @@ const TextPreview = ({ fileUrl, blockPointerEvents }) => {
   );
 };
 
+function useSameOriginSource(fileUrl, kind) {
+  const [source, setSource] = useState(null);
+
+  useEffect(() => {
+    if (!fileUrl) {
+      setSource(null);
+      return undefined;
+    }
+
+    if (fileUrl.startsWith("blob:") || fileUrl.startsWith("data:")) {
+      setSource({ type: "url", value: fileUrl });
+      return undefined;
+    }
+
+    const httpsUrl = fileUrl.replace(/^http:\/\//i, "https://");
+    let objectUrl;
+    let cancelled = false;
+
+    fetch(httpsUrl, { mode: "cors", credentials: "omit" })
+      .then((res) => {
+        if (!res.ok) throw new Error(`fetch ${res.status}`);
+        return res.arrayBuffer();
+      })
+      .then((buffer) => {
+        if (cancelled) return;
+        if (kind === "pdf") {
+          setSource({ type: "pdf-data", value: new Uint8Array(buffer.slice(0)) });
+          return;
+        }
+        const blob = new Blob([buffer]);
+        objectUrl = URL.createObjectURL(blob);
+        setSource({ type: "url", value: objectUrl });
+      })
+      .catch(() => {
+        if (!cancelled) setSource({ type: "url", value: httpsUrl });
+      });
+
+    return () => {
+      cancelled = true;
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [fileUrl, kind]);
+
+  return source;
+}
+
 const DocumentPreview = ({
   fileUrl,
   fileName,
@@ -191,6 +238,7 @@ const DocumentPreview = ({
   blockPointerEvents = false,
 }) => {
   const kind = getFileKind(fileName, contentType, fileFormat);
+  const source = useSameOriginSource(fileUrl, kind);
 
   if (!fileUrl) {
     return (
@@ -200,14 +248,24 @@ const DocumentPreview = ({
     );
   }
 
+  if ((kind === "pdf" || kind === "image") && !source) {
+    return (
+      <div className="h-[640px] flex items-center justify-center bg-white">
+        <Loader2 className="w-6 h-6 animate-spin text-[#0073ea]" />
+      </div>
+    );
+  }
+
   if (kind === "pdf") {
+    const pdfFile = source?.type === "pdf-data" ? { data: source.value } : source?.value || fileUrl;
+
     return (
       <div
         data-pdf-surface
         className={`w-full bg-white ${blockPointerEvents ? "pointer-events-none select-none" : ""}`}
       >
         <Document
-          file={fileUrl}
+          file={pdfFile}
           onLoadSuccess={({ numPages: n }) => onNumPagesChange?.(n)}
           onLoadError={onPdfError}
           loading={
@@ -236,7 +294,7 @@ const DocumentPreview = ({
     return (
       <img
         data-pdf-surface
-        src={fileUrl}
+        src={source?.value || fileUrl}
         alt={fileName || "Document"}
         className={`w-full h-auto block ${blockPointerEvents ? "pointer-events-none select-none" : ""}`}
         draggable={false}

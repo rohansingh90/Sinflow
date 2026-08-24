@@ -6,7 +6,7 @@ import { ACTIVITY_TYPES, logActivity, makeSignatureId } from "../Lib/activity";
 import DraggableField from "./DraggableField";
 import DocumentPreview, { getFileKind } from "./DocumentPreview";
 import { getDownloadUrl } from "../Lib/filePreview";
-import { isFieldComplete } from "../Lib/exportSignedDoc";
+import { exportSignedDocument, isFieldComplete } from "../Lib/exportSignedDoc";
 import {
   sanitizeFields,
   sanitizeParticipants,
@@ -47,6 +47,7 @@ const Publicview = ({ shareId, token }) => {
   const [fillModalValue, setFillModalValue] = useState("");
 
   const [isCompleted, setIsCompleted] = useState(false);
+  const [downloading, setDownloading] = useState(false);
 
   const pdfAreaRef = useRef(null);
   const scrollRef = useRef(null);
@@ -319,14 +320,34 @@ const Publicview = ({ shareId, token }) => {
         </div>
         <h1 className="text-sm font-medium text-slate-300 truncate max-w-[50%]">{docTitle}</h1>
         {fileUrl && (
-          <a
-            href={downloadUrl}
-            target="_blank"
-            rel="noreferrer"
-            className="text-xs text-indigo-400 hover:text-indigo-300"
+          <button
+            type="button"
+            onClick={async () => {
+              if (!placedFields.some(isFieldComplete)) {
+                if (downloadUrl) window.open(downloadUrl, "_blank");
+                return;
+              }
+              try {
+                setDownloading(true);
+                showToast("Generating signed PDF...");
+                await new Promise((r) => setTimeout(r, 150));
+                const ok = await exportSignedDocument({
+                  fileName,
+                  captureElement: pdfAreaRef.current,
+                });
+                showToast(ok ? "Signed PDF downloaded!" : "Could not generate PDF.");
+              } catch (err) {
+                console.error(err);
+                showToast("Download failed.");
+              } finally {
+                setDownloading(false);
+              }
+            }}
+            disabled={downloading}
+            className="text-xs text-indigo-400 hover:text-indigo-300 disabled:opacity-60"
           >
-            Download
-          </a>
+            {downloading ? "Preparing…" : placedFields.some(isFieldComplete) ? "Download signed" : "Download"}
+          </button>
         )}
       </header>
 
@@ -390,6 +411,7 @@ const Publicview = ({ shareId, token }) => {
           <div ref={scrollRef} className="flex-1 overflow-auto p-4 sm:p-6">
             <div
               ref={pdfAreaRef}
+              data-field-layer
               className="relative mx-auto bg-white shadow-md"
               style={{
                 width: isPreviewable ? pageWidth : "100%",

@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { doc, getDoc, updateDoc, serverTimestamp } from "firebase/firestore";
 import "react-pdf/dist/Page/AnnotationLayer.css";
 import "react-pdf/dist/Page/TextLayer.css";
-import { pdfjs } from "react-pdf";
 import {
   ArrowLeft,
   Calendar,
@@ -30,8 +29,6 @@ import {
   sanitizeParticipants,
   stripUndefined,
 } from "../Lib/firestoreUtils";
-
-pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.mjs`;
 
 const FIELD_TYPES = [
   { id: "signature", label: "Signature", icon: PenLine, accent: "border-blue-200 bg-blue-50/90 text-blue-700" },
@@ -871,14 +868,14 @@ const Docviewpage = ({ docData, setOpenDoc, user }) => {
 
           {fileUrl && (
             <>
-              <button
+              {/* <button
                 type="button"
                 onClick={() => setShowShareModal(true)}
                 className="h-9 px-3.5 rounded-lg border border-[#d0d4dc] bg-white text-[13px] font-medium text-slate-700 hover:bg-slate-50 transition-colors flex items-center gap-1.5"
               >
                 <Share2 className="w-3.5 h-3.5" />
                 <span className="hidden sm:inline">Share</span>
-              </button>
+              </button> */}
 
               <button
                 type="button"

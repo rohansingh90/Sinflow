@@ -209,6 +209,7 @@ const DraggableField = ({
   return (
     <div
       ref={dragRef}
+      data-export-field
       style={{
         left: `${field.x}%`,
         top: `${field.y}%`,

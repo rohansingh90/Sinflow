@@ -14,10 +14,3 @@ export default defineConfig({
     format: "es",
   },
 })
-  optimizeDeps: {
-    include: ["pdfjs-dist"],
-  },
-  worker: {
-    format: "es",
-  },
-})

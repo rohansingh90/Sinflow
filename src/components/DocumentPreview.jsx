@@ -180,6 +180,7 @@ const TextPreview = ({ fileUrl, blockPointerEvents }) => {
   );
 };
 
+
 function useSameOriginSource(fileUrl, kind) {
   const [source, setSource] = useState(null);
 
@@ -205,11 +206,8 @@ function useSameOriginSource(fileUrl, kind) {
       })
       .then((buffer) => {
         if (cancelled) return;
-        if (kind === "pdf") {
-          setSource({ type: "pdf-data", value: new Uint8Array(buffer.slice(0)) });
-          return;
-        }
-        const blob = new Blob([buffer]);
+        // 🚀 ArrayBuffer se Blob banayein taaki Worker buffer detach na ho
+        const blob = new Blob([buffer], { type: "application/pdf" });
         objectUrl = URL.createObjectURL(blob);
         setSource({ type: "url", value: objectUrl });
       })
@@ -256,40 +254,38 @@ const DocumentPreview = ({
     );
   }
 
+  
   if (kind === "pdf") {
-    const pdfFile = source?.type === "pdf-data" ? { data: source.value } : source?.value || fileUrl;
-
-    return (
-      <div
-        data-pdf-surface
-        className={`w-full bg-white ${blockPointerEvents ? "pointer-events-none select-none" : ""}`}
+  return (
+    <div
+      data-pdf-surface
+      className={`w-full bg-white ${blockPointerEvents ? "pointer-events-none select-none" : ""}`}
+    >
+      <Document
+        file={source?.value || fileUrl} 
+        onLoadSuccess={({ numPages: n }) => onNumPagesChange?.(n)}
+        onLoadError={onPdfError}
+        loading={
+          <div className="h-[640px] flex items-center justify-center">
+            <Loader2 className="w-6 h-6 animate-spin text-[#0073ea]" />
+          </div>
+        }
       >
-        <Document
-          // file={pdfFile}
-          file={fileUrl} 
-          onLoadSuccess={({ numPages: n }) => onNumPagesChange?.(n)}
-          onLoadError={onPdfError}
-          loading={
-            <div className="h-[640px] flex items-center justify-center">
-              <Loader2 className="w-6 h-6 animate-spin text-[#0073ea]" />
-            </div>
-          }
-        >
-          {Array.from({ length: numPages || 0 }, (_, index) => (
-            <div key={index} className={index < (numPages || 0) - 1 ? "mb-4" : ""}>
-              <Page
-                pageNumber={index + 1}
-                width={pageWidth}
-                devicePixelRatio={Math.max(3, window.devicePixelRatio || 1)}
-                renderTextLayer={false}
-                renderAnnotationLayer={false}
-              />
-            </div>
-          ))}
-        </Document>
-      </div>
-    );
-  }
+        {Array.from({ length: numPages || 0 }, (_, index) => (
+          <div key={index} className={index < (numPages || 0) - 1 ? "mb-4" : ""}>
+            <Page
+              pageNumber={index + 1}
+              width={pageWidth}
+              devicePixelRatio={Math.max(2, window.devicePixelRatio || 1)}
+              renderTextLayer={false}
+              renderAnnotationLayer={false}
+            />
+          </div>
+        ))}
+      </Document>
+    </div>
+  );
+}
 
   if (kind === "image") {
     return (

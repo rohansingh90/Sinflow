@@ -6,12 +6,13 @@ import { ACTIVITY_TYPES, logActivity, makeSignatureId } from "../Lib/activity";
 import DraggableField from "./DraggableField";
 import DocumentPreview, { getFileKind } from "./DocumentPreview";
 import { getDownloadUrl } from "../Lib/filePreview";
-import { exportSignedDocument, isFieldComplete } from "../Lib/exportSignedDoc";
+// import { exportSignedDocument, isFieldComplete } from "../Lib/exportSignedDoc";
 import {
   sanitizeFields,
   sanitizeParticipants,
   stripUndefined,
 } from "../Lib/firestoreUtils";
+import { isFieldComplete } from "../Lib/exportSignedDoc";
 
 const FIELD_LABELS = {
   signature: "Signature",

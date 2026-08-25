@@ -23,7 +23,7 @@ import DraggableField from "./DraggableField";
 import DocumentPreview, { getFileKind } from "./DocumentPreview";
 import ShareModal from "./ShareModal";
 import { getDownloadUrl } from "../Lib/filePreview";
-import { exportSignedDocument, isFieldComplete } from "../Lib/exportSignedDoc";
+import  { exportSignedDocument, isFieldComplete } from "../Lib/exportSignedDoc";
 import emailjs from '@emailjs/browser';
 import {
   sanitizeFields,
@@ -832,6 +832,8 @@ const Docviewpage = ({ docData, setOpenDoc, user }) => {
     }
   };
 
+  // const documentRef = useRef(null);
+  
   const blockPreviewPointer = canEditFields;
   const showPlacementLayer = canEditFields && Boolean(selectedField);
   const signerCanInteract =
@@ -1016,8 +1018,10 @@ const Docviewpage = ({ docData, setOpenDoc, user }) => {
                     fileFormat={fileFormat}
                     pageWidth={pageWidth}
                     numPages={numPages}
+                    
                     onNumPagesChange={setNumPages}
                     onPdfError={(err) => {
+
                       console.error("PDF loading error:", err);
                       setError("Failed to load PDF.");
                     }}
